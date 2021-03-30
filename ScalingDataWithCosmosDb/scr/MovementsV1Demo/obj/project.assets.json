@@ -6144,8 +6144,8 @@
     },
     "Shared/1.0.0": {
       "type": "project",
-      "path": "../../Shared/Shared.csproj",
-      "msbuildProject": "../../Shared/Shared.csproj"
+      "path": "../Shared/Shared.csproj",
+      "msbuildProject": "../Shared/Shared.csproj"
     }
   },
   "projectFileDependencyGroups": {
@@ -6185,6 +6185,9 @@
           "projectReferences": {
             "/Users/olenaborzenko/Demo/Demos/ScalingDataWithCosmosDb/scr/Models/Models.csproj": {
               "projectPath": "/Users/olenaborzenko/Demo/Demos/ScalingDataWithCosmosDb/scr/Models/Models.csproj"
+            },
+            "/Users/olenaborzenko/Demo/Demos/ScalingDataWithCosmosDb/scr/Shared/Shared.csproj": {
+              "projectPath": "/Users/olenaborzenko/Demo/Demos/ScalingDataWithCosmosDb/scr/Shared/Shared.csproj"
             },
             "/Users/olenaborzenko/Demo/Demos/ScalingDataWithCosmosDb/Shared/Shared.csproj": {
               "projectPath": "/Users/olenaborzenko/Demo/Demos/ScalingDataWithCosmosDb/Shared/Shared.csproj"

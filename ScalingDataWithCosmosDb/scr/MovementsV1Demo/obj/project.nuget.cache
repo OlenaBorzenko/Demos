@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "vAItPqi+8vQyOiEg7G5v6sxp+6iQ1i3gpDIlxl+0FcUFTLhGFOEFfYhL5UgHQtN9Eq/D8yhSvds+pS3TsBJTkQ==",
+  "dgSpecHash": "Z7tUj5xS2fFIkz07TCNdMU8gbATXGAUA56Gp+BFzI8h4rOMIWQ923KQTY62WqXYcRG/5p7LtxBmQ8WLlNd8SZA==",
   "success": true,
   "projectFilePath": "/Users/olenaborzenko/Demo/Demos/ScalingDataWithCosmosDb/scr/MovementsV1Demo/MovementsV1Demo.csproj",
   "expectedPackageFiles": [
