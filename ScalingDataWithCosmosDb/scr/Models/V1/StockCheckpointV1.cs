@@ -3,19 +3,19 @@ using Newtonsoft.Json;
 
 namespace Models.V1
 {
-    public record StockCheckpointV1
+    public class StockCheckpointV1
     {
         [JsonProperty(PropertyName = "id")]
-        public string Id { get; init; }
+        public string Id { get; set; }
 
-        public string ArticleId { get; init; }
+        public string ArticleId { get; set; }
 
-        public string ArticleName { get; init; }
+        public string ArticleName { get; set; }
 
-        public int Quantity { get; init; }
+        public int Quantity { get; set; }
 
-        public string LocationId { get; init; }
+        public string LocationId { get; set; }
 
-        public DateTimeOffset TimeStamp { get; init; }
+        public DateTimeOffset TimeStamp { get; set; }
     }
 }

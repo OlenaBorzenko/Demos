@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
@@ -19,14 +18,14 @@ namespace MovementsV1Demo
         private const string StockContainerName = "stock-checkpoints";
         private readonly Database _database;
 
-        public WarehouseRepository(string databaseName, string endpoint, string key)
+        public WarehouseRepository(string databaseName, string connection)
         {
             CosmosClientOptions options = new CosmosClientOptions { AllowBulkExecution = true };
-            var client = new CosmosClient(endpoint, key, options);
+            var client = new CosmosClient(connection, options);
 
             _database = client.CreateDatabaseIfNotExistsAsync(databaseName).Result;
 
-            _database.CreateContainerIfNotExistsAsync(MovementContainerName, "/ArticleId", 2000);
+            _database.CreateContainerIfNotExistsAsync(MovementContainerName, "/ArticleId");
             _database.CreateContainerIfNotExistsAsync(StockContainerName, "/LocationId");
         }
 
@@ -47,12 +46,12 @@ namespace MovementsV1Demo
             Console.ReadKey();
         }
 
-        public async Task CreateAggregationByLocation()
+        public async Task CreateStockCheckpointByLocation()
         {
             Container container = _database.GetContainer(MovementContainerName);
 
-            var fromAggregation = await GetOutboundAggregationByLocation(container);
-            var toAggregation = await GetInboundAggregationByLocation(container);
+            var fromAggregation = await GroupOutboundMovementsByLocation(container);
+            var toAggregation = await GroupInboundMovementsByLocation(container);
 
             await SaveCheckpointInformation(fromAggregation, toAggregation);
 
@@ -60,7 +59,7 @@ namespace MovementsV1Demo
             Console.ReadKey();
         }
 
-        public async Task GetAggregationByArticle()
+        public async Task GetStockByArticles()
         {
             Container container = _database.GetContainer(StockContainerName);
 
@@ -68,10 +67,9 @@ namespace MovementsV1Demo
 
             while (result.HasMoreResults)
             {
-                FeedResponse<StockCheckpointV1> response = await Helpers
-                    .MakeRequestWithStopWatch(() => result.ReadNextAsync(), "Get aggregation by article");
+                FeedResponse<StockCheckpointV1> response = await result.ReadNextAsync();
 
-                if (response == null)
+                if (response.Resource.ToList().Count == 0)
                 {
                     break;
                 }
@@ -82,28 +80,27 @@ namespace MovementsV1Demo
                 {
                     Helpers.Print(stock);
                 }
+
+                Console.WriteLine($"\nGet stock by articles: Request Charge: {response.RequestCharge}\n");
             }
 
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
         }
 
-        public async Task QueryAggregateByLocation()
+        public async Task GetStockByLocations()
         {
             Container container = _database.GetContainer(StockContainerName);
-
             var result = container.GetItemQueryIterator<StockCheckpointV1>();
 
             while (result.HasMoreResults)
             {
-                FeedResponse<StockCheckpointV1> response = await Helpers
-                    .MakeRequestWithStopWatch(() => result.ReadNextAsync(), "Group items by location");
+                FeedResponse<StockCheckpointV1> response = await result.ReadNextAsync();
 
                 if (response == null)
                 {
                     break;
                 }
-
 
                 Console.WriteLine("Print out all stock checkpoints\n");
 
@@ -111,6 +108,8 @@ namespace MovementsV1Demo
                 {
                     Helpers.Print(stock);
                 }
+
+                Console.WriteLine($"\nGet stock by locations: Request Charge: {response.RequestCharge}\n");
             }
 
             Console.WriteLine("Press any key to continue...");
@@ -122,23 +121,21 @@ namespace MovementsV1Demo
 
         private async Task CreateSingleMovement(Container container)
         {
-           // Creation article movement model based on test data from a previous step;
             var articleMovement = CreateArticleMovementModel();
 
-            Stopwatch stopWatch = new Stopwatch();
-            stopWatch.Start();
-
             var partitionKey = new PartitionKey(articleMovement.ArticleId);
+            var option = new ItemRequestOptions
+            {
+                EnableContentResponseOnWrite = false
+            };
 
-            // Saving document in CosmosDB;
-            var response = await container.CreateItemAsync(articleMovement, partitionKey);
+            var response = await container.CreateItemAsync(articleMovement, partitionKey, option);
 
-            stopWatch.Stop();
-
-            Console.WriteLine($"Request Charge: {response.RequestCharge}. Time spend in ms: {stopWatch.Elapsed.Milliseconds}");
+            Console.WriteLine($"Request Charge: {response.RequestCharge}");
         }
 
-        private ArticleMovement CreateArticleMovementModel() {
+        private ArticleMovement CreateArticleMovementModel()
+        {
             // Getting random test data;
             var article = Helpers.GetItemByRandomIndex(TestData.Articles);
             var movement = Helpers.GetItemByRandomIndex(TestData.Movements);
@@ -158,24 +155,24 @@ namespace MovementsV1Demo
         #endregion
 
 
-        #region CreateAggregationByLocation private methods
+        #region CreateStockCheckpointByLocation private methods
 
-        private async Task<List<AggregationV1>> GetOutboundAggregationByLocation(Container container)
+        private async Task<List<AggregationV1>> GroupOutboundMovementsByLocation(Container container)
         {
             string sqlFromLocation = "SELECT p.FromLocationId AS LocationId, p.ArticleId, p.ArticleName, Count(1) AS Count FROM p GROUP BY p.FromLocationId, p.ArticleId, p.ArticleName";
 
-            return await AggregateMovements(sqlFromLocation, container);
+            return await QueryMovements(sqlFromLocation, container);
         }
 
 
-        private async Task<List<AggregationV1>> GetInboundAggregationByLocation(Container container)
+        private async Task<List<AggregationV1>> GroupInboundMovementsByLocation(Container container)
         {
             string sqlToLocation = "SELECT p.ToLocationId AS LocationId, p.ArticleId, p.ArticleName, Count(1) AS Count FROM p GROUP BY p.ToLocationId, p.ArticleId, p.ArticleName";
 
-            return await AggregateMovements(sqlToLocation, container);
+            return await QueryMovements(sqlToLocation, container);
         }
 
-        private async Task<List<AggregationV1>> AggregateMovements(string sql, Container container)
+        private async Task<List<AggregationV1>> QueryMovements(string sql, Container container)
         {
             FeedIterator<AggregationV1> result = container.GetItemQueryIterator<AggregationV1>(new QueryDefinition(sql));
 
@@ -183,49 +180,56 @@ namespace MovementsV1Demo
 
             while (result.HasMoreResults)
             {
-                FeedResponse<AggregationV1> response = await Helpers
-                    .MakeRequestWithStopWatch(() => result.ReadNextAsync(), "Aggregate quantity of articles by location");
+                FeedResponse<AggregationV1> response = await result.ReadNextAsync();
 
-                if (response == null)
+                if (response.Resource.ToList().Count == 0)
                 {
                     break;
                 }
 
                 results.AddRange(response);
+
+                Console.WriteLine($"\nGroup movements by storage location: Request Charge: {response.RequestCharge}\n");
             }
 
             return results;
         }
 
-        private async Task SaveCheckpointInformation(List<AggregationV1> fromAggregation, List<AggregationV1> toAggregation)
+        private async Task SaveCheckpointInformation(List<AggregationV1> outboundAggregations, List<AggregationV1> inboundAggregations)
         {
-            foreach (var toItem in toAggregation)
+            foreach (var inboundAggregation in inboundAggregations)
             {
-                var fromItem = fromAggregation
-                    .FirstOrDefault(x => x.LocationId == toItem.LocationId && x.ArticleId == toItem.ArticleId);
-
                 var container = _database.GetContainer(StockContainerName);
 
-                var stockCheckpoint = new StockCheckpointV1
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    ArticleId = toItem.ArticleId,
-                    ArticleName = toItem.ArticleName,
-                    Quantity = fromItem == null ? toItem.Count : toItem.Count - fromItem.Count,
-                    LocationId = toItem.LocationId,
-                    TimeStamp = DateTimeOffset.Now
-                };
+                var stockCheckpoint = CreateStockCheckpoint(outboundAggregations, inboundAggregation);
 
                 var partitionKey = new PartitionKey(stockCheckpoint.LocationId);
+                var response = await container.CreateItemAsync(stockCheckpoint, partitionKey);
 
-                await Helpers.MakeRequestWithStopWatch(() => container.CreateItemAsync(stockCheckpoint, partitionKey), "Create checkpoint");
+                Console.WriteLine($"Create checkpoint: Request Charge: {response.RequestCharge}");
             }
+        }
+
+        private StockCheckpointV1 CreateStockCheckpoint(List<AggregationV1> outboundAggregations, AggregationV1 inboundAggregation)
+        {
+            var fromItem = outboundAggregations
+                .FirstOrDefault(x => x.LocationId == inboundAggregation.LocationId && x.ArticleId == inboundAggregation.ArticleId);
+
+            return new StockCheckpointV1
+            {
+                Id = Guid.NewGuid().ToString(),
+                ArticleId = inboundAggregation.ArticleId,
+                ArticleName = inboundAggregation.ArticleName,
+                Quantity = fromItem == null ? inboundAggregation.Count : inboundAggregation.Count - fromItem.Count,
+                LocationId = inboundAggregation.LocationId,
+                TimeStamp = DateTimeOffset.Now
+            };
         }
 
         #endregion
 
 
-        #region QueryAggregateByArticle private methods
+        #region GetStockByArticles private methods
 
         private FeedIterator<StockCheckpointV1> QueryAggregationByArticle(Container container)
         {

@@ -1,61 +1,59 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Azure.Documents;
+using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Logging;
 using Models.V2;
+using Newtonsoft.Json;
 using Shared;
+using PartitionKey = Microsoft.Azure.Cosmos.PartitionKey;
 
-namespace ChangeFeedMovementsV2
+namespace ChangeFeedAzureFunctionV3
 {
-    static class Program
+    public static class MovementsTrigger
     {
-        private static readonly IConfigurationRoot Configuration = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json")
-            .Build();
+        #region PrivateFields
 
-        private static readonly string DatabaseName = Configuration["DatabaseName"];
-        private static readonly string Connection = Configuration["CosmosDBConnection"];
-
-        private const string MovementContainerName = "movements";
+        private static readonly string DatabaseName = Environment.GetEnvironmentVariable("CosmosDBDatabase");
+        private static readonly string Connection = Environment.GetEnvironmentVariable("CosmosDBConnection");
         private const string StockPerLocationContainerName = "stock-per-location";
         private const string StockPerArticleContainerName = "stock-per-article";
 
-        private static readonly CosmosClient Client = new(Connection, new CosmosClientOptions { AllowBulkExecution = true });
-        private static readonly Database Database = Client.GetDatabase(DatabaseName);
+        private static readonly CosmosClient Client = new CosmosClient(Connection);
+        private static readonly Container StockPerLocationContainer = Client
+            .GetDatabase(DatabaseName)
+            .CreateContainerIfNotExistsAsync(StockPerLocationContainerName, "/LocationId").Result;
 
-        public static async Task Main(string[] args)
+        private static readonly Container StockPerArticleContainer = Client
+            .GetDatabase(DatabaseName)
+            .CreateContainerIfNotExistsAsync(StockPerArticleContainerName, "/ArticleId").Result;
+
+        #endregion
+
+        [FunctionName("MovementsTrigger")]
+        public static async Task RunAsync([CosmosDBTrigger(
+                databaseName: "%CosmosDBDatabase%",
+                collectionName: "%CosmosDBContainer%",
+                ConnectionStringSetting = "CosmosDBConnection",
+                LeaseCollectionName = "movements-leases-containerV3",
+                CreateLeaseCollectionIfNotExists = true)]
+            IReadOnlyList<Document> input, ILogger log)
         {
-            ContainerProperties leaseContainerProperties = new ContainerProperties("movements-leases-containerV2", "/id");
-            Container leaseContainer = await Database
-                .CreateContainerIfNotExistsAsync(leaseContainerProperties, throughput: 400);
+            if (input != null && input.Count > 0)
+            {
 
-            await Database.CreateContainerIfNotExistsAsync(StockPerLocationContainerName, "/LocationId");
-            await Database.CreateContainerIfNotExistsAsync(StockPerArticleContainerName, "/ArticleId");
+                var movements = input.
+                    Select(item => JsonConvert.DeserializeObject<ArticleMovement>(item.ToString())).ToList();
 
-            var processor = Database
-                .GetContainer(MovementContainerName)
-                .GetChangeFeedProcessorBuilder<ArticleMovement>("MovementProcessor", HandleMovementsChanges)
-                .WithInstanceName("ChangeFeedProductCategories")
-                .WithLeaseContainer(leaseContainer)
-                .Build();
-
-            Console.WriteLine("Starting Change Feed Processor...");
-            await processor.StartAsync();
-            Console.WriteLine("Change Feed Processor started.");
-
-            Console.WriteLine("Press any key to stop the processor...");
-            Console.ReadKey();
-
-            Console.WriteLine("Stopping Change Feed Processor");
-
-            await processor.StopAsync();
+                await HandleMovementsChanges(movements);
+            }
         }
 
-        private static async Task HandleMovementsChanges(IReadOnlyCollection<ArticleMovement> changes, CancellationToken cancellationToken)
+        private static async Task HandleMovementsChanges(IReadOnlyList<ArticleMovement> changes)
         {
             Console.WriteLine(changes.Count + " Change(s) Received");
 
@@ -77,38 +75,34 @@ namespace ChangeFeedMovementsV2
 
         private static async Task CalculateInventoryForArticles(StockByArticleV2 articleGroup)
         {
-            Container container = Database.GetContainer(StockPerArticleContainerName);
-
             var articleId = articleGroup.ArticleId;
 
-            var result = await GetStockDocument<StockByArticleV2>(container, articleId);
+            var result = await GetStockDocument<StockByArticleV2>(StockPerArticleContainer, articleId);
 
             if (result is null)
             {
-                await CreateStockByArticles(container, articleId, articleGroup);
+                await CreateStockByArticles(articleId, articleGroup);
 
                 return;
             }
 
-            await UpdateStockByArticles(result, articleGroup, container);
+            await UpdateStockByArticles(result, articleGroup);
         }
 
         private static async Task CalculateInventoryOnStorageLocations(StockByLocationV2 locationGroup)
         {
-            Container container = Database.GetContainer(StockPerLocationContainerName);
-
             var locationId = locationGroup.LocationId;
 
-            var result = await GetStockDocument<StockByLocationV2>(container, locationId);
+            var result = await GetStockDocument<StockByLocationV2>(StockPerLocationContainer, locationId);
 
             if (result is null)
             {
-                await CreateStockByLocations(container, locationId, locationGroup);
+                await CreateStockByLocations(locationId, locationGroup);
 
                 return;
             }
 
-            await UpdateStockByLocation(result, locationGroup, container);
+            await UpdateStockByLocation(result, locationGroup);
         }
 
         #region HelperMethods
@@ -197,7 +191,7 @@ namespace ChangeFeedMovementsV2
             return null;
         }
 
-        private static async Task CreateStockByArticles(Container container, string articleId, StockByArticleV2 articleGroup)
+        private static async Task CreateStockByArticles(string articleId, StockByArticleV2 articleGroup)
         {
             var articleStock = new StockByArticleV2
             {
@@ -209,13 +203,13 @@ namespace ChangeFeedMovementsV2
 
             ItemRequestOptions requestOptions = new ItemRequestOptions {EnableContentResponseOnWrite = false};
 
-            var response = await container.CreateItemAsync(articleStock,
+            var response = await StockPerArticleContainer.CreateItemAsync(articleStock,
                 new PartitionKey(articleId), requestOptions);
 
             Console.WriteLine($"\nRequest Charge for creating storage location: {response.RequestCharge}\n");
         }
 
-        private static async Task CreateStockByLocations(Container container, string locationId, StockByLocationV2 locationGroup)
+        private static async Task CreateStockByLocations(string locationId, StockByLocationV2 locationGroup)
         {
             var storageLocationStock = new StockByLocationV2
             {
@@ -227,13 +221,13 @@ namespace ChangeFeedMovementsV2
 
             ItemRequestOptions requestOptions = new ItemRequestOptions {EnableContentResponseOnWrite = false};
 
-            var response = await container.CreateItemAsync(storageLocationStock,
+            var response = await StockPerLocationContainer.CreateItemAsync(storageLocationStock,
                 new PartitionKey(locationId), requestOptions);
 
             Console.WriteLine($"\nRequest Charge for creating storage location: {response.RequestCharge}\n");
         }
 
-        private static async Task UpdateStockByArticles(ItemResponse<StockByArticleV2> result, StockByArticleV2 articleGroup, Container container)
+        private static async Task UpdateStockByArticles(ItemResponse<StockByArticleV2> result, StockByArticleV2 articleGroup)
         {
             bool changesHappened;
             var articleId = articleGroup.ArticleId;
@@ -254,7 +248,7 @@ namespace ChangeFeedMovementsV2
 
             if (changesHappened)
             {
-                var responseForUpdate = await container.ReplaceItemAsync(
+                var responseForUpdate = await StockPerArticleContainer.ReplaceItemAsync(
                     partitionKey: new PartitionKey(articleId),
                     id: articleId,
                     item: article);
@@ -267,7 +261,7 @@ namespace ChangeFeedMovementsV2
             }
         }
 
-        private static async Task UpdateStockByLocation(ItemResponse<StockByLocationV2> result, StockByLocationV2 locationGroup, Container container)
+        private static async Task UpdateStockByLocation(ItemResponse<StockByLocationV2> result, StockByLocationV2 locationGroup)
         {
             bool changesHappened;
             var locationId = locationGroup.LocationId;
@@ -288,7 +282,7 @@ namespace ChangeFeedMovementsV2
 
             if (changesHappened)
             {
-                var responseForUpdate = await container.ReplaceItemAsync(
+                var responseForUpdate = await StockPerLocationContainer.ReplaceItemAsync(
                     partitionKey: new PartitionKey(locationId),
                     id: locationId,
                     item: location);

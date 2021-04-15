@@ -1,9 +1,9 @@
 ﻿namespace Shared
 {
-    public record MovementItem
+    public class MovementItem
     {
-        public string Type { get; init; }
-        public string To { get; init; }
-        public string From { get; init; }
+        public string Type { get; set; }
+        public string To { get; set; }
+        public string From { get; set; }
     }
 }

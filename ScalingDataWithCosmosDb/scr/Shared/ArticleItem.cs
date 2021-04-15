@@ -1,9 +1,9 @@
 ﻿namespace Shared
 {
-    public record ArticleItem
+    public class ArticleItem
     {
-        public string Id { get; init; }
+        public string Id { get; set; }
 
-        public string Name { get; init; }
+        public string Name { get; set; }
     }
 }

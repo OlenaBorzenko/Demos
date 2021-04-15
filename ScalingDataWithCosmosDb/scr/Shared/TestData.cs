@@ -4,7 +4,7 @@ namespace Shared
 {
     public static class TestData
     {
-        public static readonly List<ArticleItem> Articles = new()
+        public static readonly List<ArticleItem> Articles = new List<ArticleItem>
         {
             new ArticleItem
             {
@@ -38,7 +38,7 @@ namespace Shared
             },
         };
 
-        public static readonly List<MovementItem> Movements = new()
+        public static readonly List<MovementItem> Movements = new List<MovementItem>
         {
             new MovementItem
             {

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
 using Models.V2;
@@ -15,16 +14,14 @@ namespace MovementsV2Demo
         private const string StockPerArticleContainerName = "stock-per-article";
         private readonly Database _database;
 
-        public WarehouseRepository(string databaseName, string endpoint, string key)
+        public WarehouseRepository(string databaseName, string connection)
         {
             CosmosClientOptions options = new CosmosClientOptions { AllowBulkExecution = true };
-            var client = new CosmosClient(endpoint, key, options);
+            var client = new CosmosClient(connection, options);
 
             _database = client.CreateDatabaseIfNotExistsAsync(databaseName).Result;
 
             client.GetDatabase(databaseName).CreateContainerIfNotExistsAsync(MovementContainerName, "/ArticleId");
-            client.GetDatabase(databaseName).CreateContainerIfNotExistsAsync(StockPerLocationContainerName, "/LocationId");
-            client.GetDatabase(databaseName).CreateContainerIfNotExistsAsync(StockPerArticleContainerName, "/ArticleId");
         }
 
         public async Task CreateMovements(int amount)
@@ -44,7 +41,7 @@ namespace MovementsV2Demo
             Console.ReadKey();
         }
 
-        public async Task GetAggregationByArticle()
+        public async Task GetStockByArticles()
         {
             Container container = _database.GetContainer(StockPerArticleContainerName);
 
@@ -52,8 +49,7 @@ namespace MovementsV2Demo
 
             while (result.HasMoreResults)
             {
-                FeedResponse<StockByArticleV2> response = await Helpers
-                    .MakeRequestWithStopWatch(() => result.ReadNextAsync(), "Get stock by article");
+                FeedResponse<StockByArticleV2> response = await result.ReadNextAsync();
 
                 if (response == null)
                 {
@@ -66,22 +62,22 @@ namespace MovementsV2Demo
                 {
                     Helpers.Print(stock);
                 }
+
+                Console.WriteLine($"\nGet stock by articles: Request Charge: {response.RequestCharge}\n");
             }
 
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
         }
 
-        public async Task QueryAggregateByLocation()
+        public async Task GetStockByLocations()
         {
             Container container = _database.GetContainer(StockPerLocationContainerName);
-
             var result = container.GetItemQueryIterator<StockByLocationV2>();
 
             while (result.HasMoreResults)
             {
-                FeedResponse<StockByLocationV2> response = await Helpers
-                    .MakeRequestWithStopWatch(() => result.ReadNextAsync(), "Get stock by article");
+                FeedResponse<StockByLocationV2> response = await result.ReadNextAsync();
 
                 if (response == null)
                 {
@@ -94,38 +90,33 @@ namespace MovementsV2Demo
                 {
                     Helpers.Print(stock);
                 }
+
+                Console.WriteLine($"\nGet stock by location: Request Charge: {response.RequestCharge}\n");
             }
 
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
         }
 
-
         #region CreateMovements private methods
 
         private async Task CreateSingleMovement(Container container)
+        {
+            var articleMovement = CreateArticleMovementModel();
+
+            var partitionKey = new PartitionKey(articleMovement.ArticleId);
+            var response = await container.CreateItemAsync(articleMovement, partitionKey);
+
+            Console.WriteLine($"Request Charge: {response.RequestCharge}.");
+        }
+
+        private ArticleMovement CreateArticleMovementModel()
         {
             // Getting random test data;
             var article = Helpers.GetItemByRandomIndex(TestData.Articles);
             var movement = Helpers.GetItemByRandomIndex(TestData.Movements);
 
-            // Creation article movement model based on test data from a previous step;
-            var articleMovement = CreateArticleMovementModel(article, movement);
-
-            Stopwatch stopWatch = new Stopwatch();
-            stopWatch.Start();
-
-            var partitionKey = new PartitionKey(articleMovement.ArticleId);
-            // Saving document in CosmosDB;
-            var response = await container.CreateItemAsync(articleMovement, partitionKey);
-
-            stopWatch.Stop();
-
-            Console.WriteLine($"Request Charge: {response.RequestCharge}. Time spend in ms: {stopWatch.Elapsed.Milliseconds}");
-        }
-
-        private ArticleMovement CreateArticleMovementModel(ArticleItem article, MovementItem movement) =>
-            new()
+            return new ArticleMovement
             {
                 Id = Guid.NewGuid().ToString(),
                 ArticleId = article.Id,
@@ -135,6 +126,7 @@ namespace MovementsV2Demo
                 ToLocationId = movement.To,
                 TimeStamp = DateTimeOffset.Now
             };
+        }
 
         #endregion
     }

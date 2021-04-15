@@ -10,13 +10,12 @@ namespace MovementsV2Demo
             .AddJsonFile("appSettings.json")
             .Build();
 
-        private static readonly string Endpoint = Configuration["EndPointUrl"];
-        private static readonly string DatabaseName = Configuration["DatabaseName"];
-        private static readonly string Key = Configuration["AuthorizationKey"];
+        private static readonly string Connection = Configuration["CosmosDBConnection"];
+        private static readonly string DatabaseName = "MovementsV3";
 
         public static async Task Main(string[] args)
         {
-            var repository = new WarehouseRepository(DatabaseName, Endpoint, Key);
+            var repository = new WarehouseRepository(DatabaseName, Connection);
 
             bool exit = false;
             while (exit == false)
@@ -43,11 +42,11 @@ namespace MovementsV2Demo
                         break;
                     case 'b':
                         Console.Clear();
-                        await repository.GetAggregationByArticle();
+                        await repository.GetStockByArticles();
                         break;
                     case 'c':
                         Console.Clear();
-                        await repository.QueryAggregateByLocation();
+                        await repository.GetStockByLocations();
                         break;
                     case 'x':
                         exit = true;

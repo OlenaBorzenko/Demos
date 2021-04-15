@@ -3,21 +3,21 @@ using Newtonsoft.Json;
 
 namespace Shared
 {
-    public record ArticleMovement
+    public class ArticleMovement
     {
         [JsonProperty(PropertyName = "id")]
-        public string Id { get; init; }
+        public string Id { get; set; }
 
-        public string ArticleId { get; init; }
+        public string ArticleId { get; set; }
 
-        public string ArticleName { get; init; }
+        public string ArticleName { get; set; }
 
-        public string MovementType { get; init; }
+        public string MovementType { get; set; }
 
-        public string FromLocationId { get; init; }
+        public string FromLocationId { get; set; }
 
-        public string ToLocationId { get; init; }
+        public string ToLocationId { get; set; }
 
-        public DateTimeOffset TimeStamp { get; init; }
+        public DateTimeOffset TimeStamp { get; set; }
     }
 }

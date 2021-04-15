@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace Models.V2
 {
-    public record StockByArticleV2
+    public class StockByArticleV2
     {
         [JsonProperty(PropertyName = "id")]
         public string Id;

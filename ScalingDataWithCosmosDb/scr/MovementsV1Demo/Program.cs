@@ -10,13 +10,12 @@ namespace MovementsV1Demo
             .AddJsonFile("appSettings.json")
             .Build();
 
-        private static readonly string Endpoint = Configuration["EndPointUrl"];
+        private static readonly string Connection = Configuration["CosmosDBConnection"];
         private static readonly string DatabaseName = Configuration["DatabaseName"];
-        private static readonly string Key = Configuration["AuthorizationKey"];
 
         public static async Task Main(string[] args)
         {
-            var repository = new WarehouseRepository(DatabaseName, Endpoint, Key);
+            var repository = new WarehouseRepository(DatabaseName, Connection);
 
             bool exit = false;
             while (exit == false)
@@ -26,8 +25,8 @@ namespace MovementsV1Demo
                 Console.WriteLine($"-----------------------------------------");
                 Console.WriteLine($"[a]   Create movements");
                 Console.WriteLine($"[b]   Create stock checkpoint");
-                Console.WriteLine($"[c]   Query Aggregate by articles");
-                Console.WriteLine($"[d]   Query Aggregate by location");
+                Console.WriteLine($"[c]   Get stock by location");
+                Console.WriteLine($"[d]   Get stock by articles");
                 Console.WriteLine($"[x]   Exit");
 
                 var result = Console.ReadKey(true);
@@ -44,15 +43,15 @@ namespace MovementsV1Demo
                         break;
                     case 'b':
                         Console.Clear();
-                        await repository.CreateAggregationByLocation();
+                        await repository.CreateStockCheckpointByLocation();
                         break;
                     case 'c':
                         Console.Clear();
-                        await repository.GetAggregationByArticle();
+                        await repository.GetStockByLocations();
                         break;
                     case 'd':
                         Console.Clear();
-                        await repository.QueryAggregateByLocation();
+                        await repository.GetStockByArticles();
                         break;
                     case 'x':
                         exit = true;
