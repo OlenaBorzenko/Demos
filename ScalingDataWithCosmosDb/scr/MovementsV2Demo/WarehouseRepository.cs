@@ -102,32 +102,13 @@ namespace MovementsV2Demo
 
         private async Task CreateSingleMovement(Container container)
         {
-            var articleMovement = CreateArticleMovementModel();
+            var articleMovement = ModelsHelper.CreateArticleMovementModel();
 
             var partitionKey = new PartitionKey(articleMovement.ArticleId);
             var response = await container.CreateItemAsync(articleMovement, partitionKey);
 
             Console.WriteLine($"Request Charge: {response.RequestCharge}.");
         }
-
-        private ArticleMovement CreateArticleMovementModel()
-        {
-            // Getting random test data;
-            var article = Helpers.GetItemByRandomIndex(TestData.Articles);
-            var movement = Helpers.GetItemByRandomIndex(TestData.Movements);
-
-            return new ArticleMovement
-            {
-                Id = Guid.NewGuid().ToString(),
-                ArticleId = article.Id,
-                ArticleName = article.Name,
-                MovementType = movement.Type,
-                FromLocationId = movement.From,
-                ToLocationId = movement.To,
-                TimeStamp = DateTimeOffset.Now
-            };
-        }
-
         #endregion
     }
 }

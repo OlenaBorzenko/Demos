@@ -18,7 +18,7 @@
         </None>
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\scr\Models\Models.csproj" />
-      <ProjectReference Include="..\scr\Shared\Shared.csproj" />
+      <ProjectReference Include="..\Models\Models.csproj" />
+      <ProjectReference Include="..\Shared\Shared.csproj" />
     </ItemGroup>
 </Project>

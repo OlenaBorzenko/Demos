@@ -10,7 +10,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MovementsV2Demo", "scr\Move
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChangeFeedMovementsV2", "scr\ChangeFeedMovementsV2\ChangeFeedMovementsV2.csproj", "{8A251E48-4E55-4C04-9BA1-38B4A8DF2E66}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChangeFeedAzureFunctionV3", "ChangeFeedAzureFunctionV3\ChangeFeedAzureFunctionV3.csproj", "{F1A22F5F-663E-4514-B530-D641AE0F6422}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChangeFeedAzureFunctionV3", "scr\ChangeFeedAzureFunctionV3\ChangeFeedAzureFunctionV3.csproj", "{177B1E8C-ED13-4B3B-AB90-41E31D1095CF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -38,9 +38,9 @@ Global
 		{8A251E48-4E55-4C04-9BA1-38B4A8DF2E66}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A251E48-4E55-4C04-9BA1-38B4A8DF2E66}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8A251E48-4E55-4C04-9BA1-38B4A8DF2E66}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F1A22F5F-663E-4514-B530-D641AE0F6422}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F1A22F5F-663E-4514-B530-D641AE0F6422}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F1A22F5F-663E-4514-B530-D641AE0F6422}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F1A22F5F-663E-4514-B530-D641AE0F6422}.Release|Any CPU.Build.0 = Release|Any CPU
+		{177B1E8C-ED13-4B3B-AB90-41E31D1095CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{177B1E8C-ED13-4B3B-AB90-41E31D1095CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{177B1E8C-ED13-4B3B-AB90-41E31D1095CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{177B1E8C-ED13-4B3B-AB90-41E31D1095CF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -121,7 +121,7 @@ namespace MovementsV1Demo
 
         private async Task CreateSingleMovement(Container container)
         {
-            var articleMovement = CreateArticleMovementModel();
+            var articleMovement = ModelsHelper.CreateArticleMovementModel();
 
             var partitionKey = new PartitionKey(articleMovement.ArticleId);
             var option = new ItemRequestOptions
@@ -132,24 +132,6 @@ namespace MovementsV1Demo
             var response = await container.CreateItemAsync(articleMovement, partitionKey, option);
 
             Console.WriteLine($"Request Charge: {response.RequestCharge}");
-        }
-
-        private ArticleMovement CreateArticleMovementModel()
-        {
-            // Getting random test data;
-            var article = Helpers.GetItemByRandomIndex(TestData.Articles);
-            var movement = Helpers.GetItemByRandomIndex(TestData.Movements);
-
-            return new ArticleMovement
-            {
-                Id = Guid.NewGuid().ToString(),
-                ArticleId = article.Id,
-                ArticleName = article.Name,
-                MovementType = movement.Type,
-                FromLocationId = movement.From,
-                ToLocationId = movement.To,
-                TimeStamp = DateTimeOffset.Now
-            };
         }
 
         #endregion
@@ -201,29 +183,13 @@ namespace MovementsV1Demo
             {
                 var container = _database.GetContainer(StockContainerName);
 
-                var stockCheckpoint = CreateStockCheckpoint(outboundAggregations, inboundAggregation);
+                var stockCheckpoint = ModelsHelper.CreateStockCheckpoint(outboundAggregations, inboundAggregation);
 
                 var partitionKey = new PartitionKey(stockCheckpoint.LocationId);
                 var response = await container.CreateItemAsync(stockCheckpoint, partitionKey);
 
                 Console.WriteLine($"Create checkpoint: Request Charge: {response.RequestCharge}");
             }
-        }
-
-        private StockCheckpointV1 CreateStockCheckpoint(List<AggregationV1> outboundAggregations, AggregationV1 inboundAggregation)
-        {
-            var fromItem = outboundAggregations
-                .FirstOrDefault(x => x.LocationId == inboundAggregation.LocationId && x.ArticleId == inboundAggregation.ArticleId);
-
-            return new StockCheckpointV1
-            {
-                Id = Guid.NewGuid().ToString(),
-                ArticleId = inboundAggregation.ArticleId,
-                ArticleName = inboundAggregation.ArticleName,
-                Quantity = fromItem == null ? inboundAggregation.Count : inboundAggregation.Count - fromItem.Count,
-                LocationId = inboundAggregation.LocationId,
-                TimeStamp = DateTimeOffset.Now
-            };
         }
 
         #endregion
