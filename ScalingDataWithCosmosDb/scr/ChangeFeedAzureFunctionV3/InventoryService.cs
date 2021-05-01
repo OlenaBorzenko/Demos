@@ -56,7 +56,7 @@ namespace ChangeFeedAzureFunctionV3
             await UpdateStockByLocation(result, locationGroup, _stockPerLocationContainer);
         }
 
-        private static async Task<ItemResponse<T>> GetStockDocument<T>(Container container, string documentId)
+        private async Task<ItemResponse<T>> GetStockDocument<T>(Container container, string documentId)
         {
             try
             {
@@ -70,7 +70,7 @@ namespace ChangeFeedAzureFunctionV3
             return null;
         }
 
-        private static async Task CreateStockByArticles(Container container, string articleId, StockByArticleV2 articleGroup)
+        private async Task CreateStockByArticles(Container container, string articleId, StockByArticleV2 articleGroup)
         {
             var articleStock = new StockByArticleV2
             {
@@ -88,7 +88,7 @@ namespace ChangeFeedAzureFunctionV3
             Console.WriteLine($"\nRequest Charge for creating storage location: {response.RequestCharge}\n");
         }
 
-        private static async Task CreateStockByLocations(Container container, string locationId, StockByLocationV2 locationGroup)
+        private async Task CreateStockByLocations(Container container, string locationId, StockByLocationV2 locationGroup)
         {
             var storageLocationStock = new StockByLocationV2
             {
@@ -106,7 +106,7 @@ namespace ChangeFeedAzureFunctionV3
             Console.WriteLine($"\nRequest Charge for creating storage location: {response.RequestCharge}\n");
         }
 
-        private static async Task UpdateStockByArticles(ItemResponse<StockByArticleV2> result, StockByArticleV2 articleGroup, Container container)
+        private async Task UpdateStockByArticles(ItemResponse<StockByArticleV2> result, StockByArticleV2 articleGroup, Container container)
         {
             bool changesHappened;
             var articleId = articleGroup.ArticleId;
@@ -140,7 +140,7 @@ namespace ChangeFeedAzureFunctionV3
             }
         }
 
-        private static async Task UpdateStockByLocation(ItemResponse<StockByLocationV2> result, StockByLocationV2 locationGroup, Container container)
+        private async Task UpdateStockByLocation(ItemResponse<StockByLocationV2> result, StockByLocationV2 locationGroup, Container container)
         {
             bool changesHappened;
             var locationId = locationGroup.LocationId;
@@ -174,7 +174,7 @@ namespace ChangeFeedAzureFunctionV3
             }
         }
 
-        private static bool HandleChangesForLocation(StockByLocationV2 locationGroup, List<ArticleCheckpointV2> checkpoints, StockByLocationV2 location)
+        private bool HandleChangesForLocation(StockByLocationV2 locationGroup, List<ArticleCheckpointV2> checkpoints, StockByLocationV2 location)
         {
             var changesHappened = false;
 
@@ -201,7 +201,7 @@ namespace ChangeFeedAzureFunctionV3
             return changesHappened;
         }
 
-        private static bool HandleChangesForArticles(StockByArticleV2 articleGroup, List<LocationCheckpointV2> checkpoints, StockByArticleV2 article)
+        private bool HandleChangesForArticles(StockByArticleV2 articleGroup, List<LocationCheckpointV2> checkpoints, StockByArticleV2 article)
         {
             var changesHappened = false;
 

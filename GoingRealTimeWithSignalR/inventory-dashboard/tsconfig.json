@@ -1,0 +1,66 @@
+{
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": "./",
+    "skipLibCheck": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "importHelpers": true,
+    "jsx": "react",
+    "keyofStringsOnly": true,
+    "lib": [
+      "dom",
+      "es2017",
+      "es2018.promise"
+    ],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "downlevelIteration": true,
+    "paths": {
+      "Home/*": [
+        "src/Home/*"
+      ],
+      "@resources/*": [
+        "./src/@styles/resources/*"
+      ],
+      "@mocks/*": [
+        "./src/@mocks/*"
+      ],
+      "@shared/*": [
+        "./src/@shared/*"
+      ],
+      "@assets/*": [
+        "./src/@assets/*"
+      ],
+      "@core/*": [
+        "./src/@core/*"
+      ],
+      "@styles/*": [
+        "./src/@styles/*"
+      ],
+      "@utils/*": [
+        "./src/@utils/*"
+      ],
+      "@typings/*": [
+        "./src/@typings/*"
+      ]
+    },
+    "sourceMap": true,
+    "strict": true,
+    "target": "es5"
+  },
+  "include": [
+    "./src/**/*"
+  ],
+  "exclude": [
+    "config",
+    "node_modules",
+    "static"
+  ],
+}

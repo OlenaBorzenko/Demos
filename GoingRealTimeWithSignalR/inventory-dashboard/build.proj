@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="4.0">
+  <Target Name="Build">
+    <Exec Command="npm i --registry=http://nuget.dev.pace.de:4873/"/>
+    <Exec Command="npm run build"/>
+  </Target>
+
+  <Target Name="Tests" DependsOnTargets="">
+    <Exec Command="npm run test" />
+  </Target>
+
+  <Target Name="Deploy">
+    <PropertyGroup>
+      <DeployDir>$(MSBuildThisFileDirectory)/Deploy</DeployDir>
+    </PropertyGroup>
+    <Message Text="##teamcity[publishArtifacts '$(MSBuildThisFileDirectory)/dist => AnalysisServer.zip']"/>
+  </Target>
+</Project>

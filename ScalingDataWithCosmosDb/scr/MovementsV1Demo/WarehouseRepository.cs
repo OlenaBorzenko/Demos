@@ -124,12 +124,11 @@ namespace MovementsV1Demo
             var articleMovement = ModelsHelper.CreateArticleMovementModel();
 
             var partitionKey = new PartitionKey(articleMovement.ArticleId);
-            var option = new ItemRequestOptions
+            var options = new ItemRequestOptions
             {
                 EnableContentResponseOnWrite = false
             };
-
-            var response = await container.CreateItemAsync(articleMovement, partitionKey, option);
+            var response = await container.CreateItemAsync(articleMovement, partitionKey, options);
 
             Console.WriteLine($"Request Charge: {response.RequestCharge}");
         }

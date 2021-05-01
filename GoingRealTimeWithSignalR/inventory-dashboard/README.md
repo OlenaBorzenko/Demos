@@ -1,0 +1,1 @@
+Starter mobx, jss, react, typescript;
