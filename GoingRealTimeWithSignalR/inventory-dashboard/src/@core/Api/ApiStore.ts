@@ -1,5 +1,5 @@
 import { castArray, flow as _flow, isFunction, isString } from 'lodash';
-import { Instance, types, getEnv } from 'mobx-state-tree';
+import { Instance, types, getEnv, flow } from 'mobx-state-tree';
 import request from 'superagent';
 
 import { GeneralApiErrors } from '@shared/enums';

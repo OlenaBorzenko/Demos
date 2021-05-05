@@ -2,18 +2,19 @@ import { IconButton } from '@material-ui/core';
 import Close from '@material-ui/icons/Close';
 import { forEach } from 'lodash';
 import { autorun } from 'mobx';
-import { inject, observer } from 'mobx-react';
+import { observer } from 'mobx-react';
 import { withSnackbar, WithSnackbarProps } from 'notistack';
 import React, { useEffect } from 'react';
 
-import { APP_INJECTION_KEY, IInjectedAppStore } from '@shared/store/app/AppStore';
+import { IAppStore } from '@shared/store/app/AppStore';
 import { useStyles } from './SnackMessages.style';
+import { useStores } from '@shared/helpers';
 
-export interface InjectedProps extends WithSnackbarProps, IInjectedAppStore {
+export interface InjectedProps extends WithSnackbarProps {
 }
 
 export const SnackMessagesComponent: React.FC<WithSnackbarProps> = observer(props => {
-  const app = (props as InjectedProps).app;
+  const app = useStores().app as IAppStore;
 
   const hideNotificationDelay = 250;
   const s = useStyles();
@@ -56,4 +57,4 @@ export const SnackMessagesComponent: React.FC<WithSnackbarProps> = observer(prop
   return null;
 });
 
-export const SnackMessages = inject(APP_INJECTION_KEY)(withSnackbar(SnackMessagesComponent));
+export const SnackMessages = withSnackbar(SnackMessagesComponent);

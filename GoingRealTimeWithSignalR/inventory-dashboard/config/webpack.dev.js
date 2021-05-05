@@ -1,22 +1,24 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 const path = require('path');
 const webpack = require('webpack');
-const merge = require('webpack-merge');
+const { merge } = require('webpack-merge');
 
 const baseConfig = require('./webpack.config');
 const paths = require('./paths');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const DotenvPlugin = require('dotenv-webpack');
 
-const host = 'http://host.com';
+const host = '';
 
 module.exports = merge(baseConfig.config, {
   mode: 'development',
-  devtool: 'cheap-module-eval-source-map',
+  devtool: 'eval-cheap-module-source-map',
   output: {
+    publicPath: '/',
     globalObject: 'this', // workaround with HMR https://github.com/webpack/webpack/issues/6642
   },
   devServer: {
     inline: true,
+    hot: true,
     historyApiFallback: true,
     proxy: [
       {
@@ -25,18 +27,27 @@ module.exports = merge(baseConfig.config, {
         secure: false,
         changeOrigin: true,
       },
-      {
-        context: ['/signalR'],
-        target: `${host}`,
-        secure: false,
-        changeOrigin: true,
-      },
     ],
-    port: 1111,
+    port: 5780,
   },
   plugins: [
+    new webpack.HotModuleReplacementPlugin(),
+    new DotenvPlugin({
+      path: path.resolve('./.env'),
+      safe: false,
+    }),
     new ForkTsCheckerWebpackPlugin({
-      tsconfig: paths.tsconfig,
+      typescript: {
+        configFile: path.resolve(process.cwd(), 'tsconfig.json'),
+        diagnosticOptions: {
+          semantic: true,
+          syntactic: true,
+        },
+        eslint: {
+          enabled: true,
+          files: './src/**/*.{ts,tsx,js,jsx}',
+        },
+      },
     })
   ],
   module: {

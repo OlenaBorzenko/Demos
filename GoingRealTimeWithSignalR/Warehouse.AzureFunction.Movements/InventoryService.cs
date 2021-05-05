@@ -17,14 +17,14 @@ namespace WarehouseAzureFunctionMovements
         public InventoryService(Database database)
         {
             _stockPerLocationContainer = database
-                .CreateContainerIfNotExistsAsync(StockPerLocationContainerName, "/LocationId").Result;
+                .CreateContainerIfNotExistsAsync(StockPerLocationContainerName, "/locationId").Result;
         }
 
         public async Task CalculateInventoryOnStorageLocations(StockByStorageLocation locationGroup)
         {
-            var locationId = locationGroup.LocationId;
+            var locationId = locationGroup.locationId;
 
-            var result = await GetStockDocument<StockByStorageLocation>(_stockPerLocationContainer, locationId);
+            var result = await GetStockDocument<StockByStorageLocation>(locationId);
 
             if (result is null)
             {
@@ -36,11 +36,30 @@ namespace WarehouseAzureFunctionMovements
             await UpdateStockByLocation(result, locationGroup, _stockPerLocationContainer);
         }
 
-        private static async Task<ItemResponse<T>> GetStockDocument<T>(Container container, string documentId)
+        public async Task<List<StockByStorageLocation>> GetInventoryOnStorageLocations()
+        {
+            var result = _stockPerLocationContainer.GetItemQueryIterator<StockByStorageLocation>();
+
+            while (result.HasMoreResults)
+            {
+                FeedResponse<StockByStorageLocation> response = await result.ReadNextAsync();
+
+                if (response == null)
+                {
+                    break;
+                }
+
+                return response.ToList();
+            }
+
+            return null;
+        }
+
+        private async Task<ItemResponse<T>> GetStockDocument<T>(string documentId)
         {
             try
             {
-                return await container.ReadItemAsync<T>(documentId, new PartitionKey(documentId));
+                return await _stockPerLocationContainer.ReadItemAsync<T>(documentId, new PartitionKey(documentId));
             }
             catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
             {
@@ -54,10 +73,10 @@ namespace WarehouseAzureFunctionMovements
         {
             var storageLocationStock = new StockByStorageLocation
             {
-                Id = locationId,
-                LocationId = locationId,
-                LocationType = storageLocationGroup.LocationType,
-                Checkpoints = storageLocationGroup.Checkpoints
+                id = locationId,
+                locationId = locationId,
+                locationType = storageLocationGroup.locationType,
+                checkpoints = storageLocationGroup.checkpoints
             };
 
             ItemRequestOptions requestOptions = new ItemRequestOptions {EnableContentResponseOnWrite = false};
@@ -71,15 +90,15 @@ namespace WarehouseAzureFunctionMovements
         private async Task UpdateStockByLocation(ItemResponse<StockByStorageLocation> result, StockByStorageLocation locationGroup, Container container)
         {
             bool changesHappened;
-            var locationId = locationGroup.LocationId;
+            var locationId = locationGroup.locationId;
 
             var location = result.Resource;
 
-            var checkpoints = location.Checkpoints;
+            var checkpoints = location.checkpoints;
 
             if (checkpoints.Count == 0)
             {
-                location.Checkpoints.AddRange(locationGroup.Checkpoints);
+                location.checkpoints.AddRange(locationGroup.checkpoints);
                 changesHappened = true;
             }
             else
@@ -109,21 +128,21 @@ namespace WarehouseAzureFunctionMovements
             foreach (var checkpoint in checkpoints)
             {
                 var newCheckpoint =
-                    locationGroup.Checkpoints.FirstOrDefault(x => x.ArticleId == checkpoint.ArticleId);
+                    locationGroup.checkpoints.FirstOrDefault(x => x.articleId == checkpoint.articleId);
 
                 if (newCheckpoint != null)
                 {
-                    checkpoint.Quantity += newCheckpoint.Quantity;
+                    checkpoint.quantity += newCheckpoint.quantity;
                     changesHappened = true;
                 }
 
-                locationGroup.Checkpoints.Remove(newCheckpoint);
+                locationGroup.checkpoints.Remove(newCheckpoint);
             }
 
-            if (locationGroup.Checkpoints.Count <= 0)
+            if (locationGroup.checkpoints.Count <= 0)
                 return changesHappened;
 
-            location.Checkpoints.AddRange(locationGroup.Checkpoints);
+            location.checkpoints.AddRange(locationGroup.checkpoints);
 
             return true;
         }

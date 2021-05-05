@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 const path = require('path');
 const webpack = require('webpack');
-const merge = require('webpack-merge');
+const { merge } = require('webpack-merge');
 
 const baseConfig = require('./webpack.config');
 const paths = require('./paths');
@@ -42,9 +42,20 @@ module.exports = merge(baseConfig.config, {
     ],
   },
   plugins: [
+    new webpack.EnvironmentPlugin([
+    ]),
     new ForkTsCheckerWebpackPlugin({
-      tsconfig: paths.tsconfig,
-      async: false,
+      typescript: {
+        configFile: path.resolve(process.cwd(), 'tsconfig.json'),
+        diagnosticOptions: {
+          semantic: true,
+          syntactic: true,
+        },
+        eslint: {
+          enabled: true,
+          files: './src/**/*.{ts,tsx,js,jsx}',
+        },
+      },
     })
   ],
 });

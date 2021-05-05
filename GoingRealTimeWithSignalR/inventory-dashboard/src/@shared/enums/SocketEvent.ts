@@ -1,3 +1,3 @@
 export enum SocketEvent {
-  OnTestUpdated = 'OnTestUpdated',
+  stockPerLocationChanged = 'stockPerLocationChanged',
 }

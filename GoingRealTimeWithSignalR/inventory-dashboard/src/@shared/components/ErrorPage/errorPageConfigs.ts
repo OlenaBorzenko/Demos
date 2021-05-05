@@ -1,11 +1,9 @@
-import { ButtonProps } from '../Button';
-
 export type ErrorPageConfig = Partial<{
   primaryTitle: string;
   secondaryTitle: string;
   subTitle: string
   description: string[];
-  buttons: ButtonProps[];
+  buttons: {};
 }>;
 
 export const getNotFoundPageConfig = (goBackHandler: () => void): ErrorPageConfig => ({

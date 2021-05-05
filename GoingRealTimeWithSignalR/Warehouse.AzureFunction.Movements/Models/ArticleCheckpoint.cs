@@ -4,12 +4,12 @@ namespace WarehouseAzureFunctionMovements.Models
 {
     public class ArticleCheckpoint
     {
-        public string ArticleId;
+        public string articleId;
 
-        public string ArticleName;
+        public string articleName;
 
-        public int Quantity;
+        public int quantity;
 
-        public DateTimeOffset TimeStamp;
+        public DateTimeOffset timeStamp;
     }
 }

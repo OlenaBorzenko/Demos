@@ -3,8 +3,8 @@ import { Provider } from 'mobx-react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { ErrorPage, getBootstrapFailedPageConfig } from '@shared/components';
-import { reloadPage } from '@shared/helpers/reloadPage';
+// import { ErrorPage, getBootstrapFailedPageConfig } from '@shared/components';
+// import { reloadPage } from '@shared/helpers/reloadPage';
 import { App } from './App';
 import { initializeDependenciesAndCreateStores, Stores } from './createStores';
 
@@ -19,12 +19,12 @@ const renderApp = (stores: Stores, history: History) => (
   )
 );
 
-const renderAppBootstrapError = () => (
-  ReactDOM.render(
-    <ErrorPage config={getBootstrapFailedPageConfig(reloadPage)} />,
-    rootHtmlElement,
-  )
-);
+// const renderAppBootstrapError = () => (
+//   ReactDOM.render(
+//     <ErrorPage config={getBootstrapFailedPageConfig(reloadPage)} />,
+//     rootHtmlElement,
+//   )
+// );
 
 (async () => {
   const history = createBrowserHistory({ basename: '/' });
@@ -36,7 +36,7 @@ const renderAppBootstrapError = () => (
   } catch (e) {
     // eslint-disable-next-line no-console
     console.error(e);
-    renderAppBootstrapError();
+    // renderAppBootstrapError();
   }
 })();
 

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Shared;
 using WarehouseAzureFunctionMovements.Models;
 
 namespace WarehouseAzureFunctionMovements
@@ -10,26 +9,26 @@ namespace WarehouseAzureFunctionMovements
         public static IEnumerable<StockByStorageLocation> GroupInboundOutboundStock(IReadOnlyCollection<ArticleMovement> changes)
         {
             var fromLocationItems = changes
-                .GroupBy(c => c.FromLocationId)
+                .GroupBy(c => c.fromLocationId)
                 .SelectMany(x => x.Select((item, key) => new
                 {
-                    LocationId = item.FromLocationId,
-                    item.ArticleId,
-                    item.Id,
-                    item.ArticleName,
-                    item.MovementType,
+                    LocationId = item.fromLocationId,
+                    ArticleId = item.articleId,
+                    item.id,
+                    ArticleName = item.articleName,
+                    MovementType = item.movementType,
                     QuantityChange = -1
                 })).ToList();
 
             var toLocationItems = changes
-                .GroupBy(c => c.ToLocationId)
+                .GroupBy(c => c.toLocationId)
                 .SelectMany(x => x.Select((item, key) => new
                 {
-                    LocationId = item.ToLocationId,
-                    item.ArticleId,
-                    item.Id,
-                    item.ArticleName,
-                    item.MovementType,
+                    LocationId = item.toLocationId,
+                    ArticleId = item.articleId,
+                    item.id,
+                    ArticleName = item.articleName,
+                    MovementType = item.movementType,
                     QuantityChange = 1
                 })).ToList();
 
@@ -38,9 +37,9 @@ namespace WarehouseAzureFunctionMovements
             var summaryByLocation = fromLocationItems.GroupBy(x => x.LocationId)
                 .Select((item, key) => new StockByStorageLocation
                 {
-                    LocationId = item.Key,
-                    LocationType = item.First().MovementType,
-                    Checkpoints = item
+                    locationId = item.Key,
+                    locationType = item.First().MovementType,
+                    checkpoints = item
                         .GroupBy(x => x.ArticleId)
                         .Select((articles, _) =>
                         {
@@ -48,9 +47,9 @@ namespace WarehouseAzureFunctionMovements
 
                             return new ArticleCheckpoint
                             {
-                                ArticleId = articles.First().ArticleId,
-                                Quantity = sum,
-                                ArticleName = articles.First().ArticleName
+                                articleId = articles.First().ArticleId,
+                                quantity = sum,
+                                articleName = articles.First().ArticleName
                             };
                         }).ToList()
                 });

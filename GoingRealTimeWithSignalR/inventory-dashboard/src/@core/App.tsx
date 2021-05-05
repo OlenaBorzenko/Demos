@@ -1,24 +1,21 @@
 import { History } from 'history';
-import { observer, inject } from 'mobx-react';
+import { observer } from 'mobx-react';
 import React, { useEffect } from 'react';
 
-import { ModalPlaceholder } from '@shared/Modal';
 import { AppRouter } from './routes/AppRouter';
 import { ThemeProvider } from './ThemeProvider';
 import { SnackbarProvider } from 'notistack';
 import { snackbarProviderConfig, SnackMessages } from '@shared/components/SnackMessages';
-import { IAppStore, APP_INJECTION_KEY } from '@shared/store/app';
+import { IAppStore } from '@shared/store/app';
+import { useStores } from '@shared/helpers';
+import { CssBaseline } from '@material-ui/core';
 
 type Props = {
   history: History;
 };
 
-interface InjectedProps extends Props {
-  app: IAppStore;
-}
-
-const AppComponent: React.FC<Props> = observer(props => {
-  const app = (props as InjectedProps).app;
+export const App: React.FC<Props> = observer(props => {
+  const app = useStores().app as IAppStore;
 
   useEffect(
     () => {
@@ -31,13 +28,11 @@ const AppComponent: React.FC<Props> = observer(props => {
 
   return (
     <ThemeProvider>
+      <CssBaseline />
       <SnackbarProvider {...snackbarProviderConfig}>
         <AppRouter history={props.history}/>
-        <ModalPlaceholder history={props.history}/>
         <SnackMessages />
       </SnackbarProvider>
     </ThemeProvider>
   );
 });
-
-export const App = inject(APP_INJECTION_KEY)(AppComponent);

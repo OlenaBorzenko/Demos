@@ -1,1 +1,2 @@
-export * from './endpointSample';
+export * from './generateMovements';
+export * from './getStorageLocations';

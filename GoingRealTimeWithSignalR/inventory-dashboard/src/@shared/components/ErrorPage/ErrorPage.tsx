@@ -1,9 +1,9 @@
 import { map } from 'lodash';
 import React from 'react';
 
-import { Button } from '../Button';
 import { ErrorPageConfig } from './errorPageConfigs';
 import { useStyles } from './ErrorPage.style';
+import { Button } from '@material-ui/core';
 
 interface ErrorPageProps {
   config: ErrorPageConfig;

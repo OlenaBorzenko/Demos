@@ -3,8 +3,8 @@ import { Instance, types, getEnv } from 'mobx-state-tree';
 import { Subject } from 'rxjs/internal/Subject';
 
 import { SocketEvent } from '@shared/enums';
-import { getURL } from './getUrl';
 import { IStoresEnv } from '@core/storesEnv';
+import { Observable } from 'rxjs';
 
 type SocketChannel = { [key in SocketEvent]: Subject<any> };
 
@@ -19,7 +19,7 @@ export const Socket = types
     return {
       connectToSocket () {
         connection = new signalR.HubConnectionBuilder()
-          .withUrl(getURL('/signalR'))
+          .withUrl('http://localhost/api')
           .configureLogging(signalR.LogLevel.Error)
           .build();
 
@@ -53,7 +53,7 @@ export const Socket = types
 
         start();
       },
-      subscribeToSocket<T> (eventName: SocketEvent): Subject<T> {
+      getStream<T> (eventName: SocketEvent): Observable<Subject<T>> {
         let subscription = socketChannels[eventName];
 
         if (subscription) {
@@ -63,11 +63,13 @@ export const Socket = types
         subscription = new Subject();
         socketChannels[eventName] = subscription;
         if (connection) {
-          connection.on(eventName, (data: T) => subscription && subscription.next(data));
+          connection.on(eventName, (data: T) => {
+
+            return subscription && subscription.next(data);
+          });
         }
 
-        return subscription;
-
+        return subscription.asObservable();
       },
     };
   });

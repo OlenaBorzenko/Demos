@@ -2,7 +2,7 @@ import { getStorage } from '@utils/getStorage';
 import { ApiStore } from './Api';
 import { IStoresEnv } from './storesEnv';
 import { NotificationsStore } from '@shared/store/notifications';
-import { AppStore, APP_INJECTION_KEY, HOME_INJECTION_KEY } from '@shared/store/app';
+import { AppStore } from '@shared/store/app';
 import { HomeStore } from 'Home/store/HomeStore';
 
 export const initializeDependenciesAndCreateStores = async () => {
@@ -16,8 +16,8 @@ export const initializeDependenciesAndCreateStores = async () => {
   };
 
   return ({
-    [APP_INJECTION_KEY]: AppStore.create({}, env),
-    [HOME_INJECTION_KEY]: HomeStore.create({}, env),
+    app: AppStore.create({}, env),
+    home: HomeStore.create({}, env),
   });
 };
 

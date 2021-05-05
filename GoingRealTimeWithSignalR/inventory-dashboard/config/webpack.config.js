@@ -52,13 +52,11 @@ module.exports.config = {
     ],
   },
   plugins: [
-    new CopyWebpackPlugin([
-      {
-        from: 'static/**/*',
-        context: path.join(__dirname, '..'),
-        cache: true,
-      },
-    ]),
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: 'static/**/*', context: path.join(__dirname, '..') },
+      ],
+    }),
     new HtmlWebpackPlugin({
       template: paths.indexHTML,
     }),
@@ -66,9 +64,6 @@ module.exports.config = {
       exclude: /a\.js|node_modules/,
       failOnError: true,
       cwd: process.cwd(),
-    }),
-    new webpack.DefinePlugin({
-      CLIENT_ID: JSON.stringify(minimist(process.argv).clientId),
     }),
   ],
 };
