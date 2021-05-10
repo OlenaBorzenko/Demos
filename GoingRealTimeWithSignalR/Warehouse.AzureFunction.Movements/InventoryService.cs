@@ -36,25 +36,6 @@ namespace WarehouseAzureFunctionMovements
             await UpdateStockByLocation(result, locationGroup, _stockPerLocationContainer);
         }
 
-        public async Task<List<StockByStorageLocation>> GetInventoryOnStorageLocations()
-        {
-            var result = _stockPerLocationContainer.GetItemQueryIterator<StockByStorageLocation>();
-
-            while (result.HasMoreResults)
-            {
-                FeedResponse<StockByStorageLocation> response = await result.ReadNextAsync();
-
-                if (response == null)
-                {
-                    break;
-                }
-
-                return response.ToList();
-            }
-
-            return null;
-        }
-
         private async Task<ItemResponse<T>> GetStockDocument<T>(string documentId)
         {
             try
