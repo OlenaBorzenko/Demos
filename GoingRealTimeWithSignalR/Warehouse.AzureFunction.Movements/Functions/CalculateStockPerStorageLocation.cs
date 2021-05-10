@@ -12,7 +12,7 @@ using Database = Microsoft.Azure.Cosmos.Database;
 
 namespace WarehouseAzureFunctionMovements.Functions
 {
-    public static class CreateInventoryByLocation
+    public static class CalculateStockPerStorageLocation
     {
         private static readonly string Connection = Environment.GetEnvironmentVariable("CosmosDBConnection");
 
@@ -21,7 +21,7 @@ namespace WarehouseAzureFunctionMovements.Functions
 
         private static readonly InventoryService InventoryService = new InventoryService(Database);
 
-        [FunctionName("CreateInventoryByLocation")]
+        [FunctionName("CalculateStockPerStorageLocation")]
         public static async Task RunAsync([CosmosDBTrigger(
                 databaseName: "warehouse",
                 collectionName: "movements",

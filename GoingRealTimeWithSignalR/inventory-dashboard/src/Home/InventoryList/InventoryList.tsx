@@ -38,7 +38,7 @@ export const InventoryList: React.FC<Props> = observer(props => {
           <Typography
             align={'center'}
             variant={'h6'}
-            color={'textPrimary'}>
+            color={checkpoint.quantity < 0 ? 'error' : 'textPrimary'}>
             {checkpoint.quantity}
           </Typography>
         )

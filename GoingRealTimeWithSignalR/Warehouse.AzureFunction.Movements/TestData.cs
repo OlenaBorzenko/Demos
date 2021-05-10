@@ -53,6 +53,12 @@ namespace WarehouseAzureFunctionMovements
                     to = "3-3-3",
                     type = "picking"
                 },
+                new MovementItem
+                {
+                    from = "3-3-3",
+                    to = "4-4-4",
+                    type = "handover"
+                },
             };
         }
 

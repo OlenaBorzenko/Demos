@@ -8,10 +8,10 @@ namespace WarehouseAzureFunctionMovements.Functions
 {
     public static class Negotiate
     {
-        [FunctionName("Negotiate")]
+        [FunctionName("negotiate")]
         public static SignalRConnectionInfo Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous,  "post", Route = null)] HttpRequest req,
-            ILogger log,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)]
+            HttpRequest req, ILogger log,
             [SignalRConnectionInfo(HubName = "warehouse")] SignalRConnectionInfo connectionInfo)
         {
             return connectionInfo;
