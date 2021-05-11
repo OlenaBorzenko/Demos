@@ -32,9 +32,7 @@ export const Home: React.FC<Props> = observer(() => {
       }
 
       return () => clearInterval(interval);
-    },
-    [started]
-  );
+    },    [started]);
 
   const changeInterval = () => {
     startInterval(!started);

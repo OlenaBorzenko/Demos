@@ -12,7 +12,8 @@ namespace WarehouseAzureFunctionMovements.Functions
         public static SignalRConnectionInfo Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)]
             HttpRequest req, ILogger log,
-            [SignalRConnectionInfo(HubName = "warehouse")] SignalRConnectionInfo connectionInfo)
+            [SignalRConnectionInfo(HubName = "warehouse")]
+            SignalRConnectionInfo connectionInfo)
         {
             return connectionInfo;
         }

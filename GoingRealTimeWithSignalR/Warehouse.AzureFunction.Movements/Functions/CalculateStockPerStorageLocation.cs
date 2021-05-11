@@ -32,8 +32,10 @@ namespace WarehouseAzureFunctionMovements.Functions
         {
             if (input != null && input.Count > 0)
             {
-                var movements = input.
-                    Select(item => JsonConvert.DeserializeObject<ArticleMovement>(item.ToString())).ToList();
+                var movements = input
+                    .Select(item => JsonConvert
+                        .DeserializeObject<ArticleMovement>(item.ToString()))
+                    .ToList();
 
                 await HandleMovementsChanges(movements);
             }
