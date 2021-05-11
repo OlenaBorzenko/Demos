@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -16,8 +15,7 @@ namespace WarehouseAzureFunctionMovements.Functions
         public static async Task<IActionResult> RunAsync(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)]
             HttpRequest req,
-            [CosmosDB(
-                databaseName: "warehouse",
+            [CosmosDB(databaseName: "warehouse",
                 collectionName: "stock-per-location",
                 ConnectionStringSetting = "CosmosDBConnection")]
             IEnumerable<StockByStorageLocation> storageLocations, ILogger log)
