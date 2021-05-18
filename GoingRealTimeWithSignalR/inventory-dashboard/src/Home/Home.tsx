@@ -26,16 +26,13 @@ export const Home: React.FC<Props> = observer(() => {
       if (started) {
         interval = setInterval(() => {
           homeStore.generateMovements();
-          // The logic of changing counter value to come soon.
         }, 500);
       } else {
         clearInterval(interval);
       }
 
       return () => clearInterval(interval);
-    },
-    [started]
-  );
+    },    [started]);
 
   const changeInterval = () => {
     startInterval(!started);
@@ -46,7 +43,11 @@ export const Home: React.FC<Props> = observer(() => {
       <Container maxWidth={'lg'}>
         <Paper className={s.content}>
           <div className={s.buttonsGroup}>
-            <Button variant={'outlined'} onClick={homeStore.generateMovements}>Create movements</Button>
+            <Button
+              variant={'outlined'}
+              onClick={homeStore.generateMovements}>
+              Create movements
+            </Button>
             <Button variant={'outlined'} onClick={changeInterval}>
               {started ? 'Stop Interval' : 'Start Interval'}
             </Button>

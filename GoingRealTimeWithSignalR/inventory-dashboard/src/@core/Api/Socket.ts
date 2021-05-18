@@ -19,7 +19,7 @@ export const Socket = types
     return {
       connectToSocket () {
         connection = new signalR.HubConnectionBuilder()
-          .withUrl('http://localhost/api')
+          .withUrl('/api')
           .configureLogging(signalR.LogLevel.Error)
           .build();
 

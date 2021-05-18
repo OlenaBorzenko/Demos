@@ -16,29 +16,23 @@ namespace WarehouseAzureFunctionMovements.Functions
     {
         [FunctionName("CreateMovements")]
         public static async Task<IActionResult> RunAsync(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous,
+                "get", "post", Route = null)] HttpRequest req,
             [CosmosDB(databaseName: "warehouse", collectionName: "movements",
-                ConnectionStringSetting = "CosmosDbConnection",
-                PartitionKey = "/ArticleId",
-                CreateIfNotExists = true)] IAsyncCollector<dynamic> documentsOut,
-            ILogger log)
+                ConnectionStringSetting = "CosmosDbConnection")]
+            IAsyncCollector<dynamic> documentsOut, ILogger log)
         {
-            log.LogInformation("HTTP trigger function processed a request.");
-
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             dynamic data = JsonConvert.DeserializeObject(requestBody);
-
-            log.LogInformation($"Request body: {data}");
+            var amount = int.Parse(data?.body?.ToString() ?? "5");
 
             var tasks = new List<Task>();
-
-            for (var i = 0; i < 2; i++)
+            for (var i = 0; i < amount; i++)
             {
                 tasks.Add(CreateSingleMovement(documentsOut));
             }
 
             await Task.WhenAll(tasks);
-
             return new OkResult();
         }
 
@@ -60,7 +54,7 @@ namespace WarehouseAzureFunctionMovements.Functions
                 articleId = article.id,
                 articleName = article.name,
                 movementType = movement.type,
-                fromLocationId = movement.@from,
+                fromLocationId = movement.from,
                 toLocationId = movement.to,
                 timeStamp = DateTimeOffset.Now
             };

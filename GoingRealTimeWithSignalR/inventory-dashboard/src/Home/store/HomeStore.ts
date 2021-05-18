@@ -8,7 +8,6 @@ import _ from 'lodash';
 
 export const HomeStore = types
   .model({
-    sampleText: types.optional(types.string, 'This is my initial state'),
     storageLocations: types.optional(types.array(StorageLocationModel), []),
   })
   .volatile(() => ({
