@@ -17,7 +17,6 @@ module.exports = merge(baseConfig.config, {
     globalObject: 'this', // workaround with HMR https://github.com/webpack/webpack/issues/6642
   },
   devServer: {
-    inline: true,
     hot: true,
     historyApiFallback: true,
     proxy: [
